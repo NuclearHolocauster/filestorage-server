@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseInterceptors, Request, Body, UploadedFiles, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, UseInterceptors, UploadedFiles, HttpException } from '@nestjs/common';
 import { FileService } from './file.service';
 import { FilesInterceptor } from "@nestjs/platform-express"
 
@@ -8,14 +8,14 @@ export class FileController {
         private readonly fileService: FileService
     ) {}
     @Post('/create')
-    @UseInterceptors(FilesInterceptor('file'))
+    @UseInterceptors(FilesInterceptor('file', 3, {limits: { fileSize: 10 * 1024 * 1024 * 1024 }}))
     public async createPost(
-        @UploadedFiles() images: Express.Multer.File[]
+        @UploadedFiles() uploadedFiles: Express.Multer.File[]
     ) {
-        if (!images) {
-            throw new HttpException('Need to upload character image', 400);
+        if (!uploadedFiles) {
+            throw new HttpException('Need to choose file', 400);
         }
-        const files = await this.fileService.filterFiles(images);
+        const files = await this.fileService.filterFiles(uploadedFiles);
         await this.fileService.saveFiles(files);
     }
 
